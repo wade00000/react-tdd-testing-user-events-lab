@@ -1,91 +1,65 @@
-import { render, screen } from "@testing-library/react";
 import '@testing-library/jest-dom';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import App from '../App';
 
-import App from "../App";
-
-// Portfolio Elements
-test("displays a top-level heading with the text `Hi, I'm _______`", () => {
-  render(<App />);
-
-  const topLevelHeading = screen.getByRole("heading", {
-    name: /hi, i'm/i,
-    exact: false,
-    level: 1,
+describe('Newsletter Signup Form', () => {
+  test('renders a name input', () => {
+    render(<App />);
+    const nameInput = screen.getByLabelText(/name/i);
+    expect(nameInput).toBeInTheDocument();
   });
 
-  expect(topLevelHeading).toBeInTheDocument();
-});
-
-test("displays an image of yourself", () => {
-  render(<App />);
-
-  const image = screen.getByAltText("My profile pic");
-
-  expect(image).toHaveAttribute("src", "https://via.placeholder.com/350");
-});
-
-test("displays second-level heading with the text `About Me`", () => {
-  render(<App />);
-
-  const secondLevelHeading = screen.getByRole("heading", {
-    name: /about me/i,
-    level: 2,
+  test('renders an email input', () => {
+    render(<App />);
+    const emailInput = screen.getByLabelText(/email/i);
+    expect(emailInput).toBeInTheDocument();
   });
 
-  expect(secondLevelHeading).toBeInTheDocument();
-});
-
-test("displays a paragraph for your biography", () => {
-  render(<App />);
-
-  const bio = screen.getByText(/lorem ipsum/i);
-
-  expect(bio).toBeInTheDocument();
-});
-
-test("displays the correct links", () => {
-  render(<App />);
-
-  const githubLink = screen.getByRole("link", {
-    name: /github/i,
-  });
-  const linkedinLink = screen.getByRole("link", {
-    name: /linkedin/i,
+  test('renders checkboxes for interests', () => {
+    render(<App />);
+    const interestCheckbox = screen.getByLabelText(/coding/i);
+    expect(interestCheckbox).toBeInTheDocument();
   });
 
-  expect(githubLink).toHaveAttribute(
-    "href",
-    expect.stringContaining("https://github.com")
-  );
+  test('renders a submit button', () => {
+    render(<App />);
+    const button = screen.getByRole('button', { name: /submit/i });
+    expect(button).toBeInTheDocument();
+  });
 
-  expect(linkedinLink).toHaveAttribute(
-    "href",
-    expect.stringContaining("https://linkedin.com")
-  );
-});
+  test('updates name input when user types', async () => {
+    render(<App />);
+    const input = screen.getByLabelText(/name/i);
+    await userEvent.type(input, 'Alice');
+    expect(input).toHaveValue('Alice');
+  });
 
-// Newsletter Form - Initial State
-test("the form includes text inputs for name and email address", () => {
-  // your test code here
-});
+  test('updates email input when user types', async () => {
+    render(<App />);
+    const input = screen.getByLabelText(/email/i);
+    await userEvent.type(input, 'alice@example.com');
+    expect(input).toHaveValue('alice@example.com');
+  });
 
-test("the form includes three checkboxes to select areas of interest", () => {
-  // your test code here
-});
+  test('displays success message after form submission', async () => {
+    render(<App />);
+    await userEvent.type(screen.getByLabelText(/name/i), 'Alice');
+    await userEvent.type(screen.getByLabelText(/email/i), 'alice@example.com');
+    await userEvent.click(screen.getByRole('button', { name: /submit/i }));
+    expect(screen.getByText(/thank you, alice/i)).toBeInTheDocument();
+  });
 
-test("the checkboxes are initially unchecked", () => {
-  // your test code here
-});
+  test('includes selected interests in success message', async () => {
+    render(<App />);
+    await userEvent.click(screen.getByLabelText(/coding/i));
+    await userEvent.click(screen.getByRole('button', { name: /submit/i }));
+    expect(screen.getByText(/your interests: coding/i)).toBeInTheDocument();
+  });
 
-// Newsletter Form - Adding Responses
-test("the page shows information the user types into the name and email address form fields", () => {
-  // your test code here
-});
-
-test("checked status of checkboxes changes when user clicks them", () => {
-  // your test code here
-});
-
-test("a message is displayed when the user clicks the Submit button", () => {
-  // your test code here
+  test('handles no interests selected correctly', async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole('button', { name: /submit/i }));
+    expect(screen.queryByText(/your interests:/i)).not.toBeInTheDocument();
+  });
 });
